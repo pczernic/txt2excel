@@ -1,7 +1,10 @@
 import xlsxwriter as x
 
+
+file_name = 'szczcyt-lato-2025'
+
 # tekstowy
-read = open('szczcyt-lato-2025.txt', 'r')
+read = open(file_name + '.txt', 'r')
 data = read.readlines()
 read.close()
 
@@ -61,7 +64,7 @@ while final[1][0][:3] != 'A.0':
     final.pop(1)
 
 # excel
-workbook = x.Workbook('test.xlsx')
+workbook = x.Workbook(file_name + '.xlsx')
 worksheet = workbook.add_worksheet()
 # formatting
 font = workbook.add_format()
@@ -78,35 +81,36 @@ wrapping.set_text_wrap()
 border = workbook.add_format()
 border.set_border(1)
 
-merge_row = []
-
 for i in range(len(final)):
     if len(final[i]) == 1:
         temp_str = f'B{i + 2}:K{i + 2}'
         worksheet.merge_range(temp_str, '', border)
         worksheet.write_row(i + 1, 1, final[i], centering)
-        merge_row = []
 
     elif len(final[i]) == 2:
         final[i] = [final[i][0] + final[i][1]]
         temp_str = f'B{i + 2}:K{i + 2}'
         worksheet.merge_range(temp_str, '', border)
         worksheet.write_row(i + 1, 1, final[i], centering)
-        merge_row = []
 
     elif len(final[i]) == 5:
-        merge_row.append(i)
         temp_str = f'B{i + 2}:K{i + 2}'
         worksheet.write_row(i + 1, 1, final[i], centering)
 
     else:
         worksheet.write_row(i + 1, 1, final[i], wrapping)
+
+merge_row = []
+for i in range(len(final)):
+    if len(final[i]) == 5:
+        merge_row.append(i)
+
+    elif not merge_row:
+        pass
+
+    else:
+        merge_box = f'G{merge_row[0] + 2}:K{merge_row[-1] + 2}'
+        worksheet.merge_range(merge_box, '', border)
         merge_row = []
 
-# merge_box = f'G{merge_row[0] + 2}:K{merge_row[-1] + 2}'
-# worksheet.merge_range(merge_box, '', border)
-
 workbook.close()
-
-# for item in final:
-#     print(len(item))
