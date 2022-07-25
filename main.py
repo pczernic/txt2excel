@@ -19,8 +19,20 @@ for i in range(len(data) - 1):
         data[i] = data[i].replace(',,,', ',')
         data[i] = data[i].replace(',,', ',')
         data[i] = data[i][1:]
-
         final.append(data[i])
+
+    elif data[i][0:2] == '+ ':
+        data[i] = data[i].replace('+ ', '')
+        data[i] = data[i].replace(' ', ',')
+        data[i] = data[i].replace(',,,,,,,', ',')
+        data[i] = data[i].replace(',,,,,,', ',')
+        data[i] = data[i].replace(',,,,,', ',')
+        data[i] = data[i].replace(',,,,', ',')
+        data[i] = data[i].replace(',,,', ',')
+        data[i] = data[i].replace(',,', ',')
+        data[i] = data[i][1:]
+        final.append(data[i])
+
     elif data[i][0:20] == 'Stacje bez zasilania':
         temp = data[i][20:].replace(' ', ',')
         temp = temp.replace(',,,,,,,', ',')
@@ -45,11 +57,8 @@ for i in range(len(final)):
         final[i].pop(-1)
         final[i].pop(-1)
 
-final.pop(1)
-final.pop(1)
-final.pop(1)
-final.pop(1)
-
+while final[1][0][:3] != 'A.0':
+    final.pop(1)
 
 # excel
 workbook = x.Workbook('test.xlsx')
@@ -76,6 +85,14 @@ for i in range(len(final)):
         temp_str = f'B{i + 2}:K{i + 2}'
         worksheet.merge_range(temp_str, '', border)
         worksheet.write_row(i + 1, 1, final[i], centering)
+        merge_row = []
+
+    elif len(final[i]) == 2:
+        final[i] = [final[i][0] + final[i][1]]
+        temp_str = f'B{i + 2}:K{i + 2}'
+        worksheet.merge_range(temp_str, '', border)
+        worksheet.write_row(i + 1, 1, final[i], centering)
+        merge_row = []
 
     elif len(final[i]) == 5:
         merge_row.append(i)
@@ -84,8 +101,12 @@ for i in range(len(final)):
 
     else:
         worksheet.write_row(i + 1, 1, final[i], wrapping)
+        merge_row = []
 
-merge_box = f'G{merge_row[0] + 2}:K{merge_row[-1] + 2}'
-worksheet.merge_range(merge_box, '', border)
+# merge_box = f'G{merge_row[0] + 2}:K{merge_row[-1] + 2}'
+# worksheet.merge_range(merge_box, '', border)
 
 workbook.close()
+
+# for item in final:
+#     print(len(item))
