@@ -1,15 +1,14 @@
 import xlsxwriter as x
 
-## tekstowy
-read = open('szczyt-lato-2020.txt', 'r')
+# tekstowy
+read = open('szczcyt-lato-2025.txt', 'r')
 data = read.readlines()
 read.close()
 
-print(data[0:7])
-
-final = open('test.txt', 'w')
+final = []
 
 for i in range(len(data) - 1):
+    data[i] = data[i].replace('\n', '')
 
     if data[i][0:2] == '  ':
         data[i] = data[i].replace(' ', ',')
@@ -19,12 +18,9 @@ for i in range(len(data) - 1):
         data[i] = data[i].replace(',,,,', ',')
         data[i] = data[i].replace(',,,', ',')
         data[i] = data[i].replace(',,', ',')
-        # print(data[i][0])
-
         data[i] = data[i][1:]
-        # print(data[i])
 
-        final.write(data[i])
+        final.append(data[i])
     elif data[i][0:20] == 'Stacje bez zasilania':
         temp = data[i][20:].replace(' ', ',')
         temp = temp.replace(',,,,,,,', ',')
@@ -33,32 +29,63 @@ for i in range(len(data) - 1):
         temp = temp.replace(',,,,', ',')
         temp = temp.replace(',,,', ',')
         temp = temp.replace(',,', ',')
-        final.write(data[i][0:20] + temp)
+        final.append(data[i][0:20] + temp)
     else:
-        final.write(data[i])
+        final.append(data[i])
 
 last_line = data[-1].replace(',', ';')
-final.write(last_line)
-final.close()
 
-## excel
+final.append(last_line[:-1])
+
+for i in range(len(final)):
+    final[i] = final[i].split(',')
+    if len(final[i]) == 11:
+        final[i].pop(-1)
+    elif len(final[i]) == 12:
+        final[i].pop(-1)
+        final[i].pop(-1)
+
+final.pop(1)
+final.pop(1)
+final.pop(1)
+final.pop(1)
+
+
+# excel
 workbook = x.Workbook('test.xlsx')
 worksheet = workbook.add_worksheet()
+# formatting
+font = workbook.add_format()
+font.set_font_name('Times New Roman')
+font.set_font_size(10)
+font.set_border(1)
 
-# Widen the first column to make the text clearer.
-worksheet.set_column('A:A', 20)
+centering = font
+centering.set_align('center')
 
-# Add a bold format to use to highlight cells.
-bold = workbook.add_format({'bold': True})
+wrapping = font
+wrapping.set_text_wrap()
 
-# Write some simple text.
-worksheet.write('A1', 'Hello')
+border = workbook.add_format()
+border.set_border(1)
 
-# Text with formatting.
-worksheet.write('A2', 'World', bold)
+merge_row = []
 
-# Write some numbers, with row/column notation.
-worksheet.write(2, 0, 123)
-worksheet.write(3, 0, 123.456)
+for i in range(len(final)):
+    if len(final[i]) == 1:
+        temp_str = f'B{i + 2}:K{i + 2}'
+        worksheet.merge_range(temp_str, '', border)
+        worksheet.write_row(i + 1, 1, final[i], centering)
+
+    elif len(final[i]) == 5:
+        merge_row.append(i)
+        temp_str = f'B{i + 2}:K{i + 2}'
+        worksheet.write_row(i + 1, 1, final[i], centering)
+
+    else:
+        worksheet.write_row(i + 1, 1, final[i], wrapping)
+
+merge_box = f'G{merge_row[0] + 2}:K{merge_row[-1] + 2}'
+worksheet.merge_range(merge_box, '', border)
 
 workbook.close()
